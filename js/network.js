@@ -4,8 +4,8 @@ if (!document.createElementNS || !document.createElementNS('http://www.w3.org/20
 
 vex.defaultOptions.className = 'vex-theme-os';
 
-
-var visMode = 'clique';           //the type of network to render, each has it own settings
+var isInitialPageLoad = true;   //distinguish initial render cycle from subsequent renders
+var visMode = 'clique';         //the type of network to render, each has it own settings
 
 var tripleStore = null;         //holds the triple data bank created by the rdfquery plugin
 var tripleObject = null;        //holds the javascript seralized object of the triple store
@@ -77,7 +77,7 @@ var jsonLines = "";
 var nodeClickFunction = function(d) {
   if (d3.event.defaultPrevented) return;
   force.stop();
-  jQuery(".popup-home-banner").hide();
+  $(".popup-home-banner").hide();
   $("html, body").animate({ scrollTop: 0 }, "slow");
   $("#popUp").animate({ scrollTop: 0 }, 1);
   usePerson = d.id;
@@ -104,17 +104,17 @@ var cboxProps = {transition:"fade",
                  scalePhotos: true,
                  returnFocus: false,
                  current: "Work {current} of {total}",
-                 title: function(){ if (jQuery('.cboxPhoto').length) { return jQuery(this).find('img').attr('copy'); } else { return "" } },
+                 title: function(){ if ($('.cboxPhoto').length) { return $(this).find('img').attr('copy'); } else { return "" } },
                  onComplete:function () {
-                   jQuery('#cboxLoadedContent').css('overflow-x', 'hidden');
-                   jQuery('.cboxPhoto').attr('style','width: auto; height: 100%; margin-top:35px; margin-left: 35%; margin-right: 180px; float: none;');
-                   jQuery('#cboxContent').prepend(
+                   $('#cboxLoadedContent').css('overflow-x', 'hidden');
+                   $('.cboxPhoto').attr('style','width: auto; height: 100%; margin-top:35px; margin-left: 35%; margin-right: 180px; float: none;');
+                   $('#cboxContent').prepend(
                      $("<img>")
                        .attr("src", "menu/logo-white.png")
                        .attr("id","cboxLogo")
                        .attr("alt", "Art Institute of Chicago")
                    );
-                   if (jQuery('.cboxPhoto').length) {
+                   if ($('.cboxPhoto').length) {
                      // Fill the image to the window. Landscape and portrait images are treated differently:
                      var maxWidth = $('#cboxLoadedContent').width() * .55; // Max width for the image
                      var maxHeight = $('#cboxLoadedContent').height() * .92;    // Max height for the image
@@ -156,24 +156,22 @@ var cboxProps = {transition:"fade",
                 };
 
 jQuery(document).ready(function($) {
-
   // Bind to StateChange Event
-  History.Adapter.bind(window,'statechange',function() { // Note: We are using statechange instead of popstate
-    var State = History.getState(); // Note: We are using History.getState() instead of event.state
-    parseStateChangeVis();
-  });
+  // Note: We are using statechange instead of popstate
+  // Note: We are using History.getState() instead of event.state
+  History.Adapter.bind(window,'statechange', parseStateChangeVis);
 
   if(!document.createElementNS || !document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect) {
-    jQuery("#network").html(
+    $("#network").html(
       'Sorry, this visualization uses the <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG standard</a>, most modern browsers support SVG.<br>If you would like to see this visualization please view this page in another browser such as <a href="https://www.google.com/chrome">Chrome</a>, <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a>, <a href="http://www.apple.com/safari/download/">Safari</a>, or <a href="http://windows.microsoft.com/en-US/internet-explorer/downloads/ie">Internet Explorer 9+</a>'
     );
     return false;
   }
 
   /* Binds */
-  $(window).resize(function() { windowResize();});
+  $(window).resize(windowResize);
 
-  jQuery('#about').colorbox(cboxProps);
+  $('#about').colorbox(cboxProps);
 
   resetFilters();
   
@@ -213,7 +211,6 @@ jQuery(document).ready(function($) {
       buildNameStore(data);
     });
 
-
     //grab the descripons of the artists
     $.get('data/abstracts.txt', function(data) {
       buildDescriptionStore(data);
@@ -230,7 +227,6 @@ jQuery(document).ready(function($) {
         if (window.descObject) {
           window.clearTimeout(interval);
           buildBase();
-
           parseStateChangeVis();
         }
       },10);
@@ -239,130 +235,11 @@ jQuery(document).ready(function($) {
       .error(function() { alert("There was an error in accessing the data file. Please try again."); });
 
   }, 10, []);
-  
-  //add the zoom widget
-  jQuery("#network").append(
-    jQuery("<div>")
-      .attr("id","zoomWidget")
-      .addClass("dragdealer")
-      .append(
-        jQuery("<div>")
-          .addClass("handle")
-          
-      )
-      .append(
-        jQuery("<div>")
-          .addClass("zoomWidgetRail")
-      )
-      .append(
-        jQuery("<div>")
-          .addClass("zoomWidgetEndcaps")
-          .attr("id","woomWidgetZoomIn")
-          .append(
-            jQuery("<div>")
-              .text("+")
-          )
-      )
-	  .append(
-        jQuery("<div>")
-          .addClass("zoomWidgetEndcaps")
-          .attr("id","woomWidgetZoomOut")
-          .append(
-            jQuery("<div>")
-              .html("&mdash;")
-          )
-      )
 
-  );
-
-  jQuery("#zoomWidget").mouseenter(function() { zoomWidgetObjDoZoom = true; });
-
-  zoomWidgetObj = new Dragdealer('zoomWidget',
-                  {
-                   horizontal: false,
-                   vertical: true,
-                   y: 0.8,
-                   animationCallback: function(x, y) {
-                       //if the value is the same as the intial value exit, to prevent a zoom even being called onload
-                       if (y==0.8) {
-						   return false;
-						   }
-              
-						//subtracting from 1 to flip axis
-                        y = 1 - y;
-                        y = (y * 2) + .4;
-
-				   // Implement various zoom levels
-				   if (y > 1 && y <= 2) {
-					 d3.selectAll(".backgroundCircle").attr("r", largeNodeRadius);
-					 d3.selectAll(".backgroundCircle").style("fill", "#ffffff");
-					   if ($(".imageCircle").css("visibility") != "visible") {
-					   d3.selectAll(".imageCircle").transition(800).style("opacity",1).attr("visibility","visible");
-					 }
-					 d3.selectAll(".imageCircle")
-					   .attr("clip-path","url(#smallClip)")
-					   .attr("width", largeNodeRadius*2)
-					   .attr("height", largeNodeRadius*2)
-					   .attr("x", largeNodeRadius*-1)
-					   .attr("y", largeNodeRadius*-1)
-					   .attr("clip-path","url(#myClip)");
-					 d3.selectAll(".labelText").transition(500).style("opacity",0).attr("visibility","hidden");
-					 d3.selectAll(".labelRect").transition(500).style("opacity",0).attr("visibility","hidden");
-					 d3.selectAll(".labelRectHighlight").transition(500).style("opacity",0).attr("visibility","hidden");	
-				   }
-				   if (y > 2) {
-					   if ($(".labelText").css("visibility") != "visible") {
-					   d3.selectAll(".labelText").transition(800).style("opacity",1).attr("visibility","visible");
-					   d3.selectAll(".labelRect").transition(800).style("opacity",1).attr("visibility","visible");
-					   d3.selectAll(".labelRectHighlight").transition(800).style("opacity",1).attr("visibility","visible");
-					 }
-				   }
-	
-				   // Default view
-				   if (y <= 1) {
-					 d3.selectAll(".backgroundCircle").transition(800).attr("r", function(d) { return  returnNodeSize(d); });
-					 d3.selectAll(".backgroundCircle").style("fill", "#E9967A");
-					 d3.selectAll(".imageCircle").transition(500).style("opacity",0).attr("visibility","hidden")
-					   .attr("width", function(d) { return  (returnNodeSize(d)*2); })
-					   .attr("height", function(d) { return  (returnNodeSize(d)*2); })
-					   .attr("x", function(d) { return  (returnNodeSize(d)*-1); })
-					   .attr("y", function(d) { return  (returnNodeSize(d)*-1); })
-					   .attr("clip-path","url(#smallClip)");
-					   d3.selectAll(".circleText").attr("y", function(d) { return returnTextLoc(d)+returnTextLoc(d)/1.8+6; })
-					   d3.selectAll(".labelText").attr("y", function(d) { return returnTextLoc(d)+returnTextLoc(d)/1.8+27; } )
-				   }
-				   else {
-					   d3.selectAll(".circleText").attr("y", function(d) { return largeNodeRadius+largeNodeRadius/1.8+6; })
-					   d3.selectAll(".labelText").attr("y", function(d) { return largeNodeRadius+largeNodeRadius/1.8+27; } )
-				   }
-				   
-				   d3.selectAll(".circleTextRect").attr("y", function(d) { return $("#" + "circleText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
-				   d3.selectAll(".circleTextRectHighlight").attr("y", function(d) { return $("#" + "circleText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
-				   d3.selectAll(".labelRect").attr("y", function(d) { return $("#" + "labelText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
-				   d3.selectAll(".labelRectHighlight").attr("y", function(d) { return $("#" + "labelText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
-				   if (y <= 1) {
-             d3.selectAll(".circleText").attr("y", function(d) { return returnTextLoc(d)+returnTextLoc(d)/1.8+7; });
-				   }
-				   else {
-             d3.selectAll(".circleText").attr("y", function(d) { return largeNodeRadius+largeNodeRadius/1.8+7; });
-				   }
-             
-	
-				 //are we  zooming based on a call from interaction with the slider, or is this callback being triggerd by the mouse event updating the slider position.
-				   if (zoomWidgetObjDoZoom == true) {
-					   //this is how it works now until i figure out how to handle this better.
-					   //translate to the middle of the vis and apply the zoom level
-					   vis.attr("transform", "translate(" + [(visWidth/2)-(visWidth*y/2),(visHeight/2)-(visHeight*y/2)] + ")"  + " scale(" + y + ")");
-					   //store the new data into the zoom object so it is ready for mouse events
-					   zoom.translate([(visWidth/2)-(visWidth*y/2),(visHeight/2)-(visHeight*y/2)]).scale(y);
-					}
-				}
-                                 
-				});
+  initializeZoomWidget();
 });
 
 function parseStateChangeVis() {
-
   var history = History.getState();
 
   if (history.hash.search(/\?person=/) > -1) {
@@ -374,14 +251,13 @@ function parseStateChangeVis() {
     }
 
     //lookup that nice name for the uri
-    usePerson = jQuery.map(idLookup, function(obj,index) {
+    usePerson = $.map(idLookup, function(obj,index) {
       if(obj === person)
         return index;
     })[0];
 
     changeVisMode("person");
     windowResize();
-    
   } else {
 	  usePerson = null; 
 	  usePersonIndex = 0; 
@@ -429,7 +305,6 @@ function initalizeNetwork() {
       .call(zoom)//.call(d3.behavior.zoom().scaleExtent([0.25, 6]).on("zoom", redraw)) //.call(d3.behavior.zoom().on("zoom", redraw))
 	  .append('svg:g');
 
-	  
 	  vis.append('svg:rect')
       .attr('width', visWidth)
       .attr('height', visHeight)
@@ -805,17 +680,17 @@ function buildBase() {
 }
 
 function resetFilters() {
-  jQuery(".filter-button").removeClass("disabled");
+  $(".filter-button").removeClass("disabled");
 
-  jQuery("#filter_all").click(function() {hideRelations(); });
-  jQuery("#filter_family").click(function() {showRelations("family"); });
-  jQuery("#filter_friends").click(function() {showRelations("friends"); });
-  jQuery("#filter_colleagues").click(function() {showRelations("colleagues"); });
-  jQuery("#filter_mentors").click(function() {showRelations("mentors"); });
-  jQuery("#filter_employers").click(function() {showRelations("employers"); });
+  $("#filter_all").click(function() {hideRelations(); });
+  $("#filter_family").click(function() {showRelations("family"); });
+  $("#filter_friends").click(function() {showRelations("friends"); });
+  $("#filter_colleagues").click(function() {showRelations("colleagues"); });
+  $("#filter_mentors").click(function() {showRelations("mentors"); });
+  $("#filter_employers").click(function() {showRelations("employers"); });
 
-  jQuery(".filter-button").removeClass("active");
-  jQuery("#filter_all").addClass("active");
+  $(".filter-button").removeClass("active");
+  $("#filter_all").addClass("active");
 
 }
 
@@ -829,8 +704,8 @@ function disableFilter(preds, rel) {
     }
   }
   if (!show) {
-    jQuery("#filter_" + rel).addClass("disabled");
-    jQuery("#filter_" + rel).off("click");
+    $("#filter_" + rel).addClass("disabled");
+    $("#filter_" + rel).off("click");
   }
 }
 
@@ -962,7 +837,7 @@ function restart() {
 	  .attr("r", "4");
 
   if (jsonLines != "" && visMode != 'person') {
-	 links = jQuery.parseJSON(jsonLines);
+	 links = $.parseJSON(jsonLines);
   }
   vis.selectAll("line.link")
     .data(links)
@@ -970,7 +845,7 @@ function restart() {
     .attr("class", function(d) {return "link " + d.customClass});
   
   if (jsonNodes != "" && visMode != 'person') {
-	  nodes = jQuery.parseJSON(jsonNodes);
+	  nodes = $.parseJSON(jsonNodes);
   }
   	  var node = vis.selectAll("g.node")
       .data(nodes);
@@ -1195,13 +1070,13 @@ function restart() {
       if ($("#network svg").css("visibility") != "visible") {
         $("#network").css("visibility","visible");
         $("#network svg").css("visibility","visible");
-        jQuery("#zoomWidget").show( "bounce", {times:3, distance:-80}, 2000).css("visibility","visible");
+        $("#zoomWidget").show( "bounce", {times:3, distance:-80}, 2000).css("visibility","visible");
         if (visMode != 'home') {
           $("#networkCanvas").fadeTo( 1000, 1, function() {
             if (visMode != 'person') {
               $("#title").fadeIn(2000);
               $("#about").fadeIn(2000);
-              jQuery('#about').colorbox(cboxProps);
+              $('#about').colorbox(cboxProps);
               $("#logo").fadeIn(2000);
             }
           });
@@ -1209,7 +1084,7 @@ function restart() {
           $("#networkCanvas").css("opacity", 1);
           $("#title").css("display","block");
           $("#about").css("display","block");
-          jQuery('#about').colorbox(cboxProps);
+          $('#about').colorbox(cboxProps);
           $("#logo").css("display","block");
         }
         if (visMode == 'person') {
@@ -1367,8 +1242,8 @@ function showPopup(d,cords) {
   if (!popupShown) {
 
     // Clear the popup
-    jQuery("#popUp").off( "scroll" );
-    jQuery('#popUp').empty();
+    $("#popUp").off( "scroll" );
+    $('#popUp').empty();
 
     // Headshot
     var useId = $.trim(decodeURI(d.id).split("\/")[decodeURI(d.id).split("\/").length-1]);
@@ -1567,7 +1442,7 @@ function showPopup(d,cords) {
       }
     }
 
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<a>")
           .attr("href", headshotLarge)
@@ -1596,14 +1471,14 @@ function showPopup(d,cords) {
       );
  
     // Home
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<div>")
           .attr("class", "popup-home popup-home-color-switch")
           .text("HOME")
       );
 
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<div>")
           .attr("class", "popup-home-banner")
@@ -1621,7 +1496,7 @@ function showPopup(d,cords) {
     }
 
     // Name and dates
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<h2>")
           .text(nodes[usePersonIndex].label)
@@ -1632,7 +1507,7 @@ function showPopup(d,cords) {
       );
 
     // Metadata
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<div>")
           .attr("class", "popup-metadata")
@@ -1646,7 +1521,7 @@ function showPopup(d,cords) {
       );
 
     // Description
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<div>")
           .attr("class", "popup-description")
@@ -1658,7 +1533,7 @@ function showPopup(d,cords) {
           .append($("<p>").html(abstract))
       );
 
-    jQuery('#popUp')
+    $('#popUp')
       .append(
         $("<div>")
           .attr("class", "clear")
@@ -1893,30 +1768,30 @@ function showPopup(d,cords) {
           )
       );
 
-      jQuery('#popUp')
+      $('#popUp')
         .append(popupWorks);
     }
 
-    jQuery("#popUp")
+    $("#popUp")
       .css("left", "0px")
       .css("top", "0px");
 
-    jQuery('.cboxHeadshot').colorbox(cboxProps);
+    $('.cboxHeadshot').colorbox(cboxProps);
 
-    var groupCboxProps = jQuery.extend({rel: "artwork-group"}, cboxProps);
-    jQuery('.artwork-group').colorbox(groupCboxProps);
+    var groupCboxProps = $.extend({rel: "artwork-group"}, cboxProps);
+    $('.artwork-group').colorbox(groupCboxProps);
 
     $("#popUp").animate({ scrollTop: 0 }, 1);
-    jQuery(".popup-home-banner").hide();
-    jQuery("#popUp").fadeIn(200);
+    $(".popup-home-banner").hide();
+    $("#popUp").fadeIn(200);
 
     setTimeout(function() {
-      jQuery("#popUp").scroll(function(){
+      $("#popUp").scroll(function(){
         if (!isScrolledIntoView('.popup-headshot-cont', 50)) {
-          jQuery(".popup-home-banner").fadeIn(200);
+          $(".popup-home-banner").fadeIn(200);
         }
         else {
-          jQuery(".popup-home-banner").fadeOut(200);
+          $(".popup-home-banner").fadeOut(200);
         }
       });
     }, 1000, []);
@@ -1948,23 +1823,20 @@ function hideDetailElements() {
 }
 
 function changeVisMode(changeTo) {
-
   if (rendering)
     return false;
   rendering = true;
 
   if (changeTo == "person") {
-    var name = "";
-
     if (nameObject.hasOwnProperty(usePerson)) {
       if (nameObject[usePerson]['http://xmlns.com/foaf/0.1/name']) {
-        name = nameObject[usePerson]['http://xmlns.com/foaf/0.1/name'][0].value;
+        var name = nameObject[usePerson]['http://xmlns.com/foaf/0.1/name'][0].value;
       }
     }
 
-    History.pushState({state:idLookup[usePerson]}, "Linked Visions: " + name, "?person=" + idLookup[usePerson]);
+    updateHistory(idLookup[usePerson], "Linked Visions: " + name, "?person=" + idLookup[usePerson]);
   } else {
-    History.pushState({state:changeTo}, "Linked Visions", "network.php");
+    updateHistory(changeTo, "Linked Visions", "network.php");
   }
 
   visMode = changeTo;
@@ -1982,6 +1854,18 @@ function changeVisMode(changeTo) {
 
   rendering = false;
 
+}
+
+function updateHistory(state, title, url) {
+  History.pushState({state: state}, title, url);
+  // cause pushState doesn't work on initial load for some reason
+  document.title = title; 
+  // let default pageview fire on first render
+  if(isInitialPageLoad === false) {
+    dataLayer.push({event: 'vpv'});
+  } else {
+    isInitialPageLoad = false;
+  }
 }
 
 function hideRelations() {
@@ -2002,14 +1886,14 @@ function hideRelations() {
   d3.selectAll(".labelRectHighlight").transition().attr("fill-opacity",1).attr("stroke-opacity",1).style("fill", salmon).attr("stroke", salmon);
   d3.selectAll(".link").transition().attr("stroke-opacity",1).style("fill-opacity",1).style("stroke-width",0.3).style("fill", grey).style("stroke", grey);
 
-  jQuery(".filter-button").removeClass("active");
-  jQuery("#filter_all").addClass("active");
+  $(".filter-button").removeClass("active");
+  $("#filter_all").addClass("active");
   d3.selectAll(".node").on("click", nodeClickFunction);
 }
 
 function showRelations(rel) {
-  jQuery(".filter-button").removeClass("active");
-  jQuery("#filter_" + rel).addClass("active");
+  $(".filter-button").removeClass("active");
+  $("#filter_" + rel).addClass("active");
   d3.selectAll(".node").on("click", nodeClickFunction);
 
   // First we grey out everything
@@ -2084,7 +1968,7 @@ function showRelations(rel) {
   for (var n in nodes) {
     var id = nodes[n].id.split("/")[nodes[n].id.split("/").length-1].replace(cssSafe,'');
 
-    if (jQuery.inArray(id, nodesShown) == -1) {
+    if ($.inArray(id, nodesShown) == -1) {
       d3.selectAll("#node_" + id).on("click", null);
     }
   }
@@ -2181,3 +2065,123 @@ function windowResize() {
 	  .attr("width", visWidth - 10)
 	  .attr("height", visHeight - 10);
 }
+
+function initializeZoomWidget() {
+  //add the zoom widget
+  $("#network").append(
+    $("<div>")
+      .attr("id","zoomWidget")
+      .addClass("dragdealer")
+      .append(
+        $("<div>")
+          .addClass("handle")
+          
+      )
+      .append(
+        $("<div>")
+          .addClass("zoomWidgetRail")
+      )
+      .append(
+        $("<div>")
+          .addClass("zoomWidgetEndcaps")
+          .attr("id","woomWidgetZoomIn")
+          .append(
+            $("<div>")
+              .text("+")
+          )
+      )
+	  .append(
+        $("<div>")
+          .addClass("zoomWidgetEndcaps")
+          .attr("id","woomWidgetZoomOut")
+          .append(
+            $("<div>")
+              .html("&mdash;")
+          )
+      )
+  );
+
+  $("#zoomWidget").mouseenter(function() { zoomWidgetObjDoZoom = true; });
+
+  zoomWidgetObj = new Dragdealer('zoomWidget', {
+    horizontal: false,
+    vertical: true,
+    y: 0.8,
+    animationCallback: zoomWidgetAnimationCallback
+  });
+}
+
+function zoomWidgetAnimationCallback(x, y) {
+  //if the value is the same as the intial value exit, to prevent a zoom even being called onload
+  if (y==0.8) { return false; }
+
+  //subtracting from 1 to flip axis
+  y = 1 - y;
+  y = (y * 2) + .4;
+
+  // Implement various zoom levels
+  if (y > 1 && y <= 2) {
+    d3.selectAll(".backgroundCircle").attr("r", largeNodeRadius);
+    d3.selectAll(".backgroundCircle").style("fill", "#ffffff");
+    if ($(".imageCircle").css("visibility") != "visible") {
+      d3.selectAll(".imageCircle").transition(800).style("opacity",1).attr("visibility","visible");
+    }
+    d3.selectAll(".imageCircle")
+      .attr("clip-path","url(#smallClip)")
+      .attr("width", largeNodeRadius*2)
+      .attr("height", largeNodeRadius*2)
+      .attr("x", largeNodeRadius*-1)
+      .attr("y", largeNodeRadius*-1)
+      .attr("clip-path","url(#myClip)");
+    d3.selectAll(".labelText").transition(500).style("opacity",0).attr("visibility","hidden");
+    d3.selectAll(".labelRect").transition(500).style("opacity",0).attr("visibility","hidden");
+    d3.selectAll(".labelRectHighlight").transition(500).style("opacity",0).attr("visibility","hidden");	
+  }
+  if (y > 2) {
+    if ($(".labelText").css("visibility") != "visible") {
+      d3.selectAll(".labelText").transition(800).style("opacity",1).attr("visibility","visible");
+      d3.selectAll(".labelRect").transition(800).style("opacity",1).attr("visibility","visible");
+      d3.selectAll(".labelRectHighlight").transition(800).style("opacity",1).attr("visibility","visible");
+    }
+  }
+
+  // Default view
+  if (y <= 1) {
+    d3.selectAll(".backgroundCircle").transition(800).attr("r", function(d) { return  returnNodeSize(d); });
+    d3.selectAll(".backgroundCircle").style("fill", "#E9967A");
+    d3.selectAll(".imageCircle").transition(500).style("opacity",0).attr("visibility","hidden")
+      .attr("width", function(d) { return  (returnNodeSize(d)*2); })
+      .attr("height", function(d) { return  (returnNodeSize(d)*2); })
+      .attr("x", function(d) { return  (returnNodeSize(d)*-1); })
+      .attr("y", function(d) { return  (returnNodeSize(d)*-1); })
+      .attr("clip-path","url(#smallClip)");
+    d3.selectAll(".circleText").attr("y", function(d) { return returnTextLoc(d)+returnTextLoc(d)/1.8+6; })
+      d3.selectAll(".labelText").attr("y", function(d) { return returnTextLoc(d)+returnTextLoc(d)/1.8+27; } )
+  }
+  else {
+    d3.selectAll(".circleText").attr("y", function(d) { return largeNodeRadius+largeNodeRadius/1.8+6; })
+      d3.selectAll(".labelText").attr("y", function(d) { return largeNodeRadius+largeNodeRadius/1.8+27; } )
+  }
+
+  d3.selectAll(".circleTextRect").attr("y", function(d) { return $("#" + "circleText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
+    d3.selectAll(".circleTextRectHighlight").attr("y", function(d) { return $("#" + "circleText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
+    d3.selectAll(".labelRect").attr("y", function(d) { return $("#" + "labelText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
+    d3.selectAll(".labelRectHighlight").attr("y", function(d) { return $("#" + "labelText_" + d.id.split("/")[d.id.split("/").length-1].replace(cssSafe,''))[0].getBBox().y; })
+    if (y <= 1) {
+      d3.selectAll(".circleText").attr("y", function(d) { return returnTextLoc(d)+returnTextLoc(d)/1.8+7; });
+    }
+    else {
+      d3.selectAll(".circleText").attr("y", function(d) { return largeNodeRadius+largeNodeRadius/1.8+7; });
+    }
+
+
+  //are we  zooming based on a call from interaction with the slider, or is this callback being triggerd by the mouse event updating the slider position.
+  if (zoomWidgetObjDoZoom == true) {
+    //this is how it works now until i figure out how to handle this better.
+    //translate to the middle of the vis and apply the zoom level
+    vis.attr("transform", "translate(" + [(visWidth/2)-(visWidth*y/2),(visHeight/2)-(visHeight*y/2)] + ")"  + " scale(" + y + ")");
+    //store the new data into the zoom object so it is ready for mouse events
+    zoom.translate([(visWidth/2)-(visWidth*y/2),(visHeight/2)-(visHeight*y/2)]).scale(y);
+  }
+}
+
