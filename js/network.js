@@ -185,7 +185,6 @@ jQuery(document).ready(function($) {
 	$("#title").css("display","none");
 	$("#about").css("display","none");
 	$("#logo").css("display","none");
-	$("#zoomWidget").css("display","none");
   $(".filter-button").hide();
 
   showSpinner("");
