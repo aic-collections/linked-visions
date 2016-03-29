@@ -1,11 +1,24 @@
-Linked Jazz Network
+Linked Visions
 ===================
 
-The source for [linkedjazz.org/network](http://www.linkedjazz.org/network)
+The source for
+[linkedvisions.artic.edu](http://linkedvisions.artic.edu), an application that
+allows the user to visually explore the social and personal
+connections between individuals in Whistler and Roussel’s networks.
 
+[Whistler and Roussel: Linked Visions](http://www.artic.edu/exhibition/whistler-and-roussel-linked-visions), an exhibition on view at the
+Art Institute of Chicago in Fall 2015, featured prints and drawings by James
+McNeill Whistler and Theodore Roussel. The exhibition showed that the
+work Whistler and Roussel produced during the late 19th century was
+not created in isolation, but was only possible in the context of
+their dynamic, thriving community. This community of artists,
+technicians, writers, publishers and models as well as their family
+and friends encouraged experimentation and created space for insiders
+and outsiders to explore a new world of artistic expression. In order
+to bring this idea to life, a team at the Art Institute
+created the Linked Visions interactive.
 
-This is a d3.js network visualization powered by linked data. 
-The data directory contains the triple files that populate the graph via RDF plugin for jquery. No database is required.
+This is a d3.js network visualization powered by linked data. The data directory contains the triple files that populate the graph via RDF plugin for jquery. No database is required.
 
 
 
@@ -35,7 +48,7 @@ License
 ====
 The MIT License (MIT)
 
-Copyright (c) 2014 Matt Miller
+Copyright (c) 2015 Art Institute of Chicago
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
